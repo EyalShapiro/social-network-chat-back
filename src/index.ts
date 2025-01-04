@@ -12,7 +12,7 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 
 // PostgreSQL setup
 const pool = new Pool({
@@ -27,7 +27,7 @@ const pool = new Pool({
 app.use(express.json());
 // Enable CORS for the frontend URL (http://localhost:5173)
 
-app.use(cors({ origin: "*" /*Allow only requests from this frontend URL*/ }));
+app.use(cors({ origin: CLIENT_URL || "*" }));
 // Create table if it doesn't exist
 (async () => {
 	try {
@@ -50,21 +50,19 @@ app.get("/messages", async (req, res) => {
 		const LIMIT_ITEMS = 50;
 		const query = `SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at ASC LIMIT ${LIMIT_ITEMS}`;
 		const result = await pool.query(query);
-		console.log(result.rows);
-
-		res.json({ data: result.rows });
+		// console.log(result.rows);
+		const sendedResult = result.rows || [];
+		res.json(sendedResult);
 	} catch (err) {
 		console.error("Error fetching messages:", err);
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 });
 
+const methods = ["GET", "POST", "PUT", "DELETE"];
 // Socket.IO setup
 const socketIoServer = new Server(httpServer, {
-	cors: {
-		origin: FRONTEND_URL,
-		methods: ["GET", "POST", "PUT", "DELETE"],
-	},
+	cors: { origin: CLIENT_URL, methods },
 });
 
 // Handle socket connection
@@ -73,7 +71,8 @@ socketIoServer.on("connection", async (socket) => {
 
 	try {
 		const result = await pool.query<MessageDataType[]>(`SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at ASC`);
-		socket.emit("previous messages", result.rows); // Emit previous messages to new users
+		const sendBack = result.rows || [];
+		socket.emit("previous messages", sendBack); // Emit previous messages to new users
 	} catch (err) {
 		console.error("Error fetching previous messages:", err);
 	}
@@ -88,7 +87,7 @@ socketIoServer.on("connection", async (socket) => {
 				`INSERT INTO ${MESSAGES_TABLE} (sender, message) VALUES ($1, $2) RETURNING *`,
 				[msg.sender, msg.message]
 			);
-			const savedMessage = result.rows[0];
+			const savedMessage = result.rows[0] || msg;
 
 			// Emit the saved message to all clients
 			socketIoServer.emit("chat message", savedMessage);
