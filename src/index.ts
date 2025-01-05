@@ -47,8 +47,7 @@ app.use(cors({ origin: CLIENT_URL || "*" }));
 // RESTful API to fetch messages
 app.get("/messages", async (req, res) => {
 	try {
-		const LIMIT_ITEMS = 50;
-		const query = `SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at ASC LIMIT ${LIMIT_ITEMS}`;
+		const query = `SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at`;
 		const result = await pool.query(query);
 		// console.log(result.rows);
 		const sendedResult = result.rows || [];
@@ -58,7 +57,44 @@ app.get("/messages", async (req, res) => {
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 });
+// RESTful API to fetch messages with pagination
+app.get("/messages/paginated", async (req, res) => {
+	try {
+		//TODO: Implement pagination
+		//TODO: is not get latest items
+		//TODO: If you don't see it, please refetch the data in frotend
 
+		//  Get page and limit from query parameters with default values
+		const page = parseInt(req.query.page as string) || 1;
+		const limit = parseInt(req.query.limit as string) || 50;
+
+		// Calculate the offset for the SQL query
+		const offset = (page - 1) * limit;
+		console.log({ page, limit, offset });
+
+		// Fetch messages from the database
+		const query = `SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
+
+		const result = await pool.query(query, [limit, offset]);
+
+		// Fetch the total number of messages
+		const countQuery = `SELECT COUNT(*) FROM ${MESSAGES_TABLE}`;
+		const countResult = await pool.query(countQuery);
+		const totalCount = parseInt(countResult.rows[0].count, 10);
+
+		const data = {
+			messages: result.rows.reverse(),
+			totalCount,
+			page,
+			limit,
+		};
+		// Send the paginated response
+		res.json(data);
+	} catch (err) {
+		console.error("Error fetching paginated messages:", err);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+});
 const methods = ["GET", "POST", "PUT", "DELETE"];
 // Socket.IO setup
 const socketIoServer = new Server(httpServer, {
@@ -67,7 +103,7 @@ const socketIoServer = new Server(httpServer, {
 
 // Handle socket connection
 socketIoServer.on("connection", async (socket) => {
-	console.log("A user connected");
+	console.log("\nA user connected");
 
 	try {
 		const result = await pool.query<MessageDataType[]>(`SELECT * FROM ${MESSAGES_TABLE} ORDER BY created_at ASC`);
@@ -79,7 +115,7 @@ socketIoServer.on("connection", async (socket) => {
 
 	// Handle incoming chat messages
 	socket.on("chat message", async (msg: MessageDataType) => {
-		console.log(`${msg.sender}: ${msg.message}\n-----------------`);
+		console.log(`userName:${msg.sender}\n sent-message: ${msg.message}\n-----------------`);
 
 		try {
 			// Save message to database
