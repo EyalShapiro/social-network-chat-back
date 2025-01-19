@@ -40,7 +40,7 @@ app.use(cors({ origin: CLIENT_URL || "*" }));
 		const result = await pool.query(query);
 		console.log(`Table '${MESSAGES_TABLE}' is ready.`);
 	} catch (err) {
-		console.error(`Error creating '${MESSAGES_TABLE}' table:`, err);
+		console.error(`Error creating or get items '${MESSAGES_TABLE}' table:`, err);
 	}
 })();
 
