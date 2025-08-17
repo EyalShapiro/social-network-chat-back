@@ -31,8 +31,8 @@ bower_components/
 Thumbs.db
 
 # npm package lock files (optional, depending on your workflow)
-package-lock.json
-yarn.lock
+# package-lock.json
+# yarn.lock
 
 # TypeScript files (if using TypeScript)
 *.tsbuildinfo
