@@ -11,7 +11,6 @@
 	"license": "ISC",
 	"description": "",
 	"dependencies": {
-		"@types/morgan": "^1.9.10",
 		"body-parser": "^2.2.0",
 		"cookie-parser": "^1.4.7",
 		"cors": "^2.8.5",
@@ -24,6 +23,7 @@
 		"typescript": "^5.7.2"
 	},
 	"devDependencies": {
+		"@types/morgan": "^1.9.10",
 		"@types/cookie-parser": "^1.4.9",
 		"@types/express": "^5.0.0",
 		"@types/node": "^22.10.2",
