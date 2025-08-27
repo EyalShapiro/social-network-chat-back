@@ -1,32 +1,43 @@
 {
-	"name": "social-network-chat-back",
-	"version": "1.0.0",
-	"main": "index.js",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"start": "ts-node src/index.ts"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"description": "",
-	"dependencies": {
-		"body-parser": "^2.2.0",
-		"cookie-parser": "^1.4.7",
-		"cors": "^2.8.5",
-		"dotenv": "^16.4.7",
-		"express": "^4.21.2",
-		"morgan": "^1.10.1",
-		"pg": "^8.13.1",
-		"socket.io": "^4.8.1",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.7.2"
-	},
-	"devDependencies": {
-		"@types/morgan": "^1.9.10",
-		"@types/cookie-parser": "^1.4.9",
-		"@types/express": "^5.0.0",
-		"@types/node": "^22.10.2",
-		"@types/pg": "^8.11.10"
-	}
+  "name": "social-network-chat-back",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start:ts": "ts-node src/index.ts",
+    "dev:ts": "tsc --watch",
+    "start": "node dist/index.js",
+    "dev": "nodemon",
+    "test": "jest",
+    "test:dev": "node tools\\db-test.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "morgan": "^1.10.1",
+    "pg": "^8.13.1",
+    "socket.io": "^4.8.1",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/express": "^5.0.0",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.9.2"
+  }
 }

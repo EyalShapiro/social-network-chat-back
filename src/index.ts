@@ -1,41 +1,52 @@
-import dotenv from "dotenv";
-// Load environment variables
+import dotenv from 'dotenv';
 dotenv.config();
-import express from "express";
-import { createServer } from "http";
-import { Server } from "socket.io";
-import cors from "cors";
-import { CLIENT_URL, PORT } from "./config/server";
-import socketConnection from "./socket";
-import routers from "./api";
-import morgan from "morgan";
-import cookieParser from "cookie-parser";
-import bodyParser from "body-parser";
-import { handleError } from "./middlewares/handleError";
+import express from 'express';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import { PORT } from './config';
+import socketConnection from './socket';
+import routers from './api';
+import { corsOptions } from './middlewares/cors';
+import db from './db';
+import { handleError } from './middlewares/handleError';
+import http from 'http';
 
 const app = express();
+
 // Middleware
-app.use(morgan("dev")); // Logging middleware
-app.use("api/", routers);
-app.use(express.json());
-// Enable CORS for the frontend URL (http://localhost:5173)
-app.use(cors({ origin: CLIENT_URL || "*" }));
-app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(morgan('dev')); // HTTP request logging
+app.use(express.json()); // Parse JSON bodies
+app.use(cookieParser()); // Parse cookies
+app.use(cors(corsOptions)); // CORS configuration
+app.use('/api', routers); // Mount API routes
 
-const httpServer = createServer(app);
-
+// Error handling middleware (must be last)
 app.use(handleError);
+
+// Create HTTP server
+const httpServer = http.createServer(app);
+
 // Socket.IO setup
-const io = new Server(httpServer, { cors: { origin: CLIENT_URL }, path: "/socket" });
-
-// Handle socket connection
-io.on("connection", socketConnection);
-io.close();
-
-// Start server
-httpServer.listen(PORT, () => {
-	console.log(`Server running on http://localhost:${PORT}`);
-	console.log(`Socket.IO server running on http://localhost:${PORT}/socket`);
+const io = new Server(httpServer, { cors: corsOptions, path: '/socket' });
+io.use((socket, next) => {
+  console.log(`Socket connected: ${socket.id}`); // Log socket ID only
+  next();
 });
-io.attach(httpServer);
+
+// Handle socket connections
+io.on('connection', socketConnection);
+
+// Start server with database connection
+httpServer.listen(PORT, async () => {
+  try {
+    await db.pool.connect();
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Socket.IO server running on http://localhost:${PORT}/socket`);
+    console.log(`Connected to the database ${db.dbConfig.database} ${db.dbConfig.host}:${db.dbConfig.port}`);
+  } catch (err) {
+    console.error('Database connection error:', err);
+    process.exit(1);
+  }
+});
