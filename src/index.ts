@@ -1,3 +1,5 @@
+console.log('entry point');
+
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
@@ -14,7 +16,6 @@ import { handleError } from './middlewares/handleError';
 import http from 'http';
 
 const app = express();
-
 // Middleware
 app.use(morgan('dev')); // HTTP request logging
 app.use(express.json()); // Parse JSON bodies
@@ -41,12 +42,12 @@ io.on('connection', socketConnection);
 // Start server with database connection
 httpServer.listen(PORT, async () => {
   try {
-    await db.pool.connect();
+    await db.connect();
     console.log(`Server running on http://localhost:${PORT}`);
     console.log(`Socket.IO server running on http://localhost:${PORT}/socket`);
-    console.log(`Connected to the database ${db.dbConfig.database} ${db.dbConfig.host}:${db.dbConfig.port}`);
   } catch (err) {
     console.error('Database connection error:', err);
+    db.close();
     process.exit(1);
   }
 });

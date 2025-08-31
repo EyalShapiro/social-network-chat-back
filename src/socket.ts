@@ -1,8 +1,8 @@
 import { DefaultEventsMap } from 'socket.io';
 import { MessageDataType } from './types/MessageType';
-import { pool } from './config/dbConfig';
 import { MESSAGES_TABLE } from './constants/tableName';
 import { Socket } from 'socket.io';
+import db from './db';
 
 export default async function socketConnection(
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
@@ -22,7 +22,7 @@ export default async function socketConnection(
 
     try {
       // Save message to database
-      const result = await pool.query<MessageDataType[]>(
+      const result = await db.query<MessageDataType[]>(
         `INSERT INTO ${MESSAGES_TABLE} (sender, message) VALUES ($1, $2) RETURNING *`,
         [msg.sender, msg.message]
       );

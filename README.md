@@ -1,76 +1,42 @@
 # social-network-chat-back
 
-# PostgreSQL with Docker: Quick Start Guide
-
-This guide explains how to set up and run a PostgreSQL server using Docker, including starting and restarting the container.
+A Node.js/TypeScript backend for a social network chat application using Express, Socket.IO, and PostgreSQL.
 
 ## Prerequisites
 
-1. **Install Docker**: Ensure Docker is installed on your machine. Download it from [Docker's official website](https://www.docker.com/products/docker-desktop) if needed.
+- **Node.js** (v18 or higher)
+- **Docker** (for PostgreSQL database)
+- **npm** or **yarn**
 
----
+## Quick Start
 
-## Initial Setup
-
-### Step 1: Run PostgreSQL Container
-
-Open your terminal and execute the following command:
+### 1. Install Dependencies
 
 ```bash
-docker run --name my-postgres \
-  -e POSTGRES_USER=myuser \
-  -e POSTGRES_PASSWORD=mypassword \
-  -e POSTGRES_DB=mydb \
-  -p 5432:5432 \
-  -d postgres
+npm install
 ```
 
-### Explanation of Flags:
+### 2. Environment Setup
 
-- `--name my-postgres`: Assigns a name to your container (e.g., `my-postgres`).
-- `-e POSTGRES_USER=myuser`: Specifies the PostgreSQL username.
-- `-e POSTGRES_PASSWORD=mypassword`: Specifies the PostgreSQL password.
-- `-e POSTGRES_DB=mydb`: Creates a default database named `mydb`.
-- `-p 5432:5432`: Maps port 5432 of the container to port 5432 on your local machine.
-- `-d postgres`: Downloads and runs the default PostgreSQL image.
+Create a `.env` file in the root directory:
 
-### Verify the Container is Running
+```env
+PORT=3000
+NODE_ENV=development
 
-Use the following command to check the status of the container:
-
-```bash
-docker ps
+# Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_NAME=mydb
 ```
 
-If the container is running, you will see it listed in the output.
+### 3. Database Setup with Docker
 
----
+#### First Time Setup
 
-## Accessing the PostgreSQL Server
-
-### From Docker Terminal
-
-To access the PostgreSQL server directly from the Docker container, run:
-
-```bash
-docker exec -it my-postgres psql -U myuser -d mydb
-```
-
-### From External Tools
-
-You can connect to PostgreSQL using tools like `psql` or GUI clients like [pgAdmin](https://www.pgadmin.org/). Use the following connection details:
-
-- **Host**: `localhost`
-- **Port**: `5432`
-- **Username**: `myuser`
-- **Password**: `mypassword`
-- **Database**: `mydb`
-
----
-
-## Persistent Data
-
-By default, data will be lost when the container stops. To ensure data persistence, use a Docker volume:
+Run PostgreSQL container with persistent data:
 
 ```bash
 docker run --name my-postgres \
@@ -82,45 +48,143 @@ docker run --name my-postgres \
   -d postgres
 ```
 
-Here, `my_postgres_data` is the volume that will store your database files.
+#### Starting Existing Container
 
----
-
-## Restarting the PostgreSQL Container
-
-### To Start the Container Again
-
-If the container is stopped, you can restart it using:
+If you already have the container created:
 
 ```bash
 docker start my-postgres
 ```
 
-### To Stop the Container
-
-To stop the container, run:
+#### Verify Container Status
 
 ```bash
-docker stop my-postgres
+docker ps
 ```
 
-### To Remove the Container
-
-If you need to delete the container, use:
+### 4. Start Development Server
 
 ```bash
-docker rm my-postgres
+npm run dev
 ```
 
-If you plan to reuse the data, make sure the volume (`my_postgres_data`) is not removed.
+The server will start on `http://localhost:3000` with Socket.IO on `http://localhost:3000/socket`.
 
----
+## Available Scripts
 
-## Summary
+- `npm run dev` - Start development server with auto-reload
+- `npm run build` - Build TypeScript to JavaScript
+- `npm start` - Start production server
+- `npm test` - Run tests
+- `npm run types:check` - Check TypeScript types without emitting files
+- `npm run lint` - Run ESLint
+- `npm run format` - Format code with Prettier
 
-1. Use `docker run` to set up and start the PostgreSQL server.
-2. Use `docker exec` to access the server.
-3. Use volumes to persist data.
-4. Use `docker start` and `docker stop` to manage the container lifecycle.
+## Database Management
 
-With these steps, you can efficiently set up and manage PostgreSQL with Docker!
+### Connection Details
+
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Username**: `myuser`
+- **Password**: `mypassword`
+- **Database**: `mydb`
+
+### Accessing PostgreSQL
+
+#### Via Docker Terminal
+
+```bash
+docker exec -it my-postgres psql -U myuser -d mydb
+```
+
+#### Via External Tools
+
+Use tools like [pgAdmin](https://www.pgadmin.org/) or [DBeaver](https://dbeaver.io/) with the connection details above.
+
+### Docker Container Management
+
+| Command                            | Description                                       |
+| ---------------------------------- | ------------------------------------------------- |
+| `docker start my-postgres`         | Start the PostgreSQL container                    |
+| `docker stop my-postgres`          | Stop the PostgreSQL container                     |
+| `docker restart my-postgres`       | Restart the PostgreSQL container                  |
+| `docker logs my-postgres`          | View container logs                               |
+| `docker exec -it my-postgres bash` | Access container shell                            |
+| `docker rm my-postgres`            | Remove container (⚠️ Will lose data if no volume) |
+
+### Data Persistence
+
+The setup uses a Docker volume `my_postgres_data` to persist database data. This ensures your data survives container restarts and removals.
+
+To view Docker volumes:
+
+```bash
+docker volume ls
+```
+
+To inspect the volume:
+
+```bash
+docker volume inspect my_postgres_data
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+
+If you see connection errors, the application will automatically display Docker setup instructions. Common solutions:
+
+1. **Container not running**: `docker start my-postgres`
+2. **Wrong credentials**: Check your `.env` file matches Docker environment variables
+3. **Port conflicts**: Ensure port 5432 is not used by other services
+
+### TypeScript/ESM Issues
+
+If you encounter module resolution errors:
+
+1. Ensure you're using the correct Node.js version (18+)
+2. Try using `tsx` instead of `ts-node-esm`: `npm install --save-dev tsx`
+3. Update the dev script to: `"dev": "nodemon --exec tsx src/index.ts"`
+
+### Socket.IO Connection Issues
+
+- Verify CORS settings in `./middlewares/cors`
+- Check that the client connects to the correct path: `/socket`
+- Ensure the server is running on the expected port
+
+## Project Structure
+
+```
+src/
+├── api/           # API routes
+├── config/        # Configuration files
+├── db/           # Database connection and queries
+├── middlewares/  # Express middlewares
+├── socket/       # Socket.IO handlers
+└── index.ts      # Application entry point
+```
+
+## Development Features
+
+- **Hot Reload**: Automatic server restart on code changes
+- **TypeScript**: Full TypeScript support with strict mode
+- **ESLint**: Code linting and formatting
+- **Prettier**: Code formatting
+- **Morgan**: HTTP request logging
+- **CORS**: Cross-origin resource sharing configuration
+
+## Production Deployment
+
+1. Build the application: `npm run build`
+2. Set `NODE_ENV=production` in your environment
+3. Use a production PostgreSQL instance
+4. Start with: `npm start`
+
+## Contributing
+
+Run tests and linting: `npm test && npm run lint`
+
+## License
+
+ISC

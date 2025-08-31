@@ -1,1 +1,1 @@
-export const MESSAGES_TABLE = "messages";
+export const MESSAGES_TABLE = 'messages';

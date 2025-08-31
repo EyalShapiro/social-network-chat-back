@@ -1,14 +1,14 @@
 {
   "name": "social-network-chat-back",
-  "version": "1.0.0",
+  "version": "1.4.0",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start:ts": "ts-node src/index.ts",
-    "dev:ts": "tsc --watch",
-    "start": "node dist/index.js",
+    "build": "tsc",
+    "start": "node dist/app.js",
     "dev": "nodemon",
-    "test": "jest",
+    "test": "node --test './src/**/*.test.ts'",
+    "types:check": "tsc --noEmit",
     "test:dev": "node tools\\db-test.js",
     "lint": "eslint .",
     "format": "prettier --write ."
@@ -25,19 +25,21 @@
     "express": "^4.21.2",
     "morgan": "^1.10.1",
     "pg": "^8.13.1",
-    "socket.io": "^4.8.1",
-    "ts-node": "^10.9.2"
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.6",
     "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.18.0",
     "@types/pg": "^8.11.10",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.1.10",
+    "prettier": "3.6.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
 }

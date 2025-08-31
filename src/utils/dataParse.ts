@@ -1,3 +1,5 @@
+import { IS_PRODUCTION as IS_PROD } from '../config';
+
 /**
  * Safely parses a JSON string into an object.
  *
@@ -8,7 +10,7 @@
  * @param {string} str - The JSON string to parse.
  * @returns {object} The parsed object if successful, otherwise an empty object.
  */
-export function parseObj(str: any) {
+export function parseObj(str: string) {
   try {
     return JSON.parse(str || '{}');
   } catch (error) {
@@ -23,11 +25,13 @@ export function parseObj(str: any) {
  * On stringification failure, it logs a warning in non-production environments
  * and returns an empty object string (`{}`).
  *
- * @param {any} value - The value to stringify.
+ * @template VT
+ * @param {VT} value - The value to stringify.
  * @returns {string} The JSON string if successful, otherwise `"{}"`.
  */
-export function stringifyObj(value: any) {
+export function stringifyObj<VT = unknown>(value: VT): string {
   try {
+    if (!value) throw new Error('No value to stringify');
     return JSON.stringify(value);
   } catch (error) {
     if (!IS_PROD) console.warn('Failed to stringify object:', error);
