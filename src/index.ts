@@ -12,7 +12,7 @@ import socketConnection from './socket';
 import routers from './api';
 import { corsOptions } from './middlewares/cors';
 import db from './db';
-import { handleError } from './middlewares/handleError';
+import { handleError, handleNodFound404 } from './middlewares/handleError';
 import http from 'http';
 
 const app = express();
@@ -25,6 +25,7 @@ app.use('/api', routers); // Mount API routes
 
 // Error handling middleware (must be last)
 app.use(handleError);
+app.use(handleNodFound404);
 
 // Create HTTP server
 const httpServer = http.createServer(app);
