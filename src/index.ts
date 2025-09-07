@@ -12,7 +12,7 @@ import { NODE_ENV, PORT } from './config';
 import socketConnection from './socket';
 import routers from './api';
 import { corsOptions } from './middlewares/cors';
-import { errorHandler, handleNodFound404 } from './middlewares/handleError';
+import { errorHandler, handleNotFound404 } from './middlewares/handleError';
 import logger from './config/logger';
 
 const app = express();
@@ -24,7 +24,7 @@ app.use(cors(corsOptions)); // CORS configuration
 app.use('/api', routers); // Mount API routes
 
 // Error handling middleware (must be last)
-app.use(handleNodFound404);
+app.use(handleNotFound404);
 app.use(errorHandler);
 
 // Create HTTP server

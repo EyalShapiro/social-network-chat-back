@@ -39,7 +39,7 @@ export function errorHandler(err: Error, req: Request, res: Response, next: Next
  * @param {Response} res - The Express response object.
  * @param {NextFunction} next - The next middleware function.
  */
-export function handleNodFound404(req: Request, res: Response, _next: NextFunction) {
+export function handleNotFound404(req: Request, res: Response, _next: NextFunction) {
   const message = `Not Found: '${req.originalUrl}'`;
 
   const errorObj = createErrorResponse(404, message, req); //{ message, originalUrl: req.originalUrl, status: 404, timestamp: new Date().toISOString() };
