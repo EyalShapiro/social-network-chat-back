@@ -1,5 +1,3 @@
-console.log('entry point');
-
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
@@ -7,13 +5,15 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { PORT } from './config';
+import http from 'http';
+
+import db from './db';
+import { NODE_ENV, PORT } from './config';
 import socketConnection from './socket';
 import routers from './api';
 import { corsOptions } from './middlewares/cors';
-import db from './db';
-import { handleError, handleNodFound404 } from './middlewares/handleError';
-import http from 'http';
+import { errorHandler, handleNodFound404 } from './middlewares/handleError';
+import logger from './config/logger';
 
 const app = express();
 // Middleware
@@ -24,8 +24,8 @@ app.use(cors(corsOptions)); // CORS configuration
 app.use('/api', routers); // Mount API routes
 
 // Error handling middleware (must be last)
-app.use(handleError);
 app.use(handleNodFound404);
+app.use(errorHandler);
 
 // Create HTTP server
 const httpServer = http.createServer(app);
@@ -33,7 +33,7 @@ const httpServer = http.createServer(app);
 // Socket.IO setup
 const io = new Server(httpServer, { cors: corsOptions, path: '/socket' });
 io.use((socket, next) => {
-  console.log(`Socket connected: ${socket.id}`); // Log socket ID only
+  logger.info(`Socket connected: ${socket.id}`);
   next();
 });
 
@@ -44,11 +44,13 @@ io.on('connection', socketConnection);
 httpServer.listen(PORT, async () => {
   try {
     await db.connect();
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Socket.IO server running on http://localhost:${PORT}/socket`);
+    logger.warn(`the server is running in ${NODE_ENV} mode`);
+    logger.info(`Server running on http://localhost:${PORT}`);
+    logger.info(`Socket.IO server running on http://localhost:${PORT}/socket`);
   } catch (err) {
-    console.error('Database connection error:', err);
     db.close();
+    httpServer.close(console.error);
+    io.close(console.error);
     process.exit(1);
   }
 });

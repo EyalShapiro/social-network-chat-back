@@ -1,6 +1,7 @@
 import { Pool, QueryResult, QueryResultRow } from 'pg';
 import { dbConfig } from '../config/dbConfig';
-import { IS_PRODUCTION } from '../config';
+import { IS_PROD } from '../config';
+import logger from '../config/logger';
 /**
  * A class for managing database connections and queries using a PostgreSQL connection pool.
  */
@@ -18,20 +19,20 @@ export default class db {
     try {
       const client = await this.pool.connect();
       const dbConfig = this.DB_CONFIG;
-      console.info(`Connected to database: ${dbConfig.database} at ${dbConfig.host}:${dbConfig.port}`); //todo: change to logger
+      logger.info(`Connected to database: ${dbConfig.database} at ${dbConfig.host}:${dbConfig.port}`);
       client.release();
       this.isConnected = true;
       return this.isConnected;
     } catch (error: Error | unknown) {
-      console.error('Database connection error:', error); //todo: change to logger
+      logger.error('Database connection error:', error);
       this.isConnected = false;
 
       // Check if the error is an object and has a 'code' property of type string
       // This safely narrows the type to allow access to the 'code' property
       if (error && error instanceof Error && 'code' in error && error.code === 'ECONNREFUSED') {
-        console.error(
+        logger.error(
           'Failed to connect to the database. Please check your configuration.\n go to readme for docker setup instructions. in local dev.'
-        ); //todo: change to logger
+        );
       }
       throw error;
     }
@@ -46,9 +47,9 @@ export default class db {
     try {
       await this.pool.end();
       this.isConnected = false;
-      console.info('Database connection pool closed'); //todo: change to logger
+      logger.info('Database connection pool closed');
     } catch (error) {
-      console.error('Error closing database connection pool:', error); //todo: change to logger
+      logger.error('Error closing database connection pool:', error);
       throw error;
     }
   }
@@ -72,12 +73,12 @@ export default class db {
       const start = Date.now();
       const result = await this.pool.query<RT>(queryText, params);
       const duration = Date.now() - start;
-      if (!IS_PRODUCTION) {
-        console.info('Executed query', { queryText, duration, rows: result.rowCount }); //todo: change to logger
+      if (!IS_PROD) {
+        logger.info('Executed query', { queryText, duration, rows: result.rowCount });
       }
       return result;
     } catch (error) {
-      console.error('DB Query Error:', queryText, params, error);
+      logger.error('DB Query Error:', queryText, params, error);
       throw new Error(`Database query failed: ${(error as Error).message}`);
     }
   }

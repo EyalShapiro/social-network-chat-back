@@ -1,6 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
-import { IS_PRODUCTION } from '../config';
+import { IS_PROD } from '../config';
 import logger from '../config/logger';
+
+// A single function to create a standardized error response object
+const createErrorResponse = (statusCode: number, message: string, req: Request, error?: Error) => {
+  const originalUrl = req?.originalUrl;
+  const timestamp = new Date().toISOString(); //todo: if used liber use
+
+  const errObj = { message, statusCode, timestamp, originalUrl, error: IS_PROD ? undefined : error };
+
+  // Log the error for debugging in development
+  if (!IS_PROD) logger.error(errObj);
+
+  return errObj;
+};
 
 /**
  * Middleware for handling 500 and general server errors.
@@ -10,22 +23,15 @@ import logger from '../config/logger';
  * @param {Response} res - The Express response object.
  * @param {NextFunction} next - The next middleware function.
  */
-export function handleError(err: Error, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
   const message = err?.message || 'Internal Server Error 500';
-  const errObj = {
-    message,
-    error: err,
-    timestamp: new Date().toISOString(),
-    originalUrl: req.originalUrl,
-    status: 500,
-  };
-  if (!IS_PRODUCTION) {
-    logger.error(errObj);
-  }
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
 
-  res.status(500).json(errObj);
+  const errObj = createErrorResponse(statusCode, message, req, err);
+
+  if (res.headersSent) next(err);
+  else res.status(statusCode).json(errObj);
 }
-
 /**
  * Middleware for handling 404 Not Found errors.
  *
@@ -35,10 +41,8 @@ export function handleError(err: Error, req: Request, res: Response, _next: Next
  */
 export function handleNodFound404(req: Request, res: Response, _next: NextFunction) {
   const message = `Not Found: '${req.originalUrl}'`;
-  const errorObj = { message, originalUrl: req.originalUrl, status: 404, timestamp: new Date().toISOString() };
-  if (!IS_PRODUCTION) {
-    logger.error(errorObj);
-  }
+
+  const errorObj = createErrorResponse(404, message, req); //{ message, originalUrl: req.originalUrl, status: 404, timestamp: new Date().toISOString() };
 
   res.status(404).json(errorObj);
 }
